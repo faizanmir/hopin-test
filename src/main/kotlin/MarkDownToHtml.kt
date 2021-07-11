@@ -25,7 +25,7 @@ class MarkDownToHtml {
             }
 
         } else {
-            println("is invalid")
+            println("Input is invalid since there is no space between the last hash and the first character")
         }
     }
 }
