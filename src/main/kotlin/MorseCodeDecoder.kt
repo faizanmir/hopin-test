@@ -3,67 +3,74 @@ class MorseCodeDecoder {
     fun performMorseCodeDecoding(input: String?) {
         input?.let { convertFromMorseCode(it) }
     }
-
-
     //Function performs the conversion to String from morse code for a single
     //character
     private fun convertFromMorseCode(input: String) {
-        ///Checking for unwanted strings such as "???"
-        if (input.contains(".") || input.contains("-")) {
-            var inputHasError = false
-            val errorIndices = arrayListOf<Int>()
-            var i = 0
-            var possibleValues: HashSet<String> = hashSetOf()
+     //Checking for input length
+        if(input.length<=4) {
+            ///Checking for strings such as "???"
+            if (input.contains(".") || input.contains("-")) {
+                var inputHasError = false
+                val errorIndices = arrayListOf<Int>()
+                var i = 0
+                var possibleValues: HashSet<String> = hashSetOf()
 
-            //checking if the input has invalid characters or errors
-            //these are then added in an arraylist to maintain the error indices
+                //checking if the input has invalid characters or errors
+                //these are then added in an arraylist to maintain the error indices
 
-            input.map {
-                if (!(it == '.' || it == '-')) {
-                    errorIndices.add(i)
-                    inputHasError = true
+                input.map {
+                    if (!(it == '.' || it == '-')) {
+                        errorIndices.add(i)
+                        inputHasError = true
+                    }
+                    i++
                 }
-                i++
-            }
 
-            //if inputHasError is true ->Error state has occurred & we have an unknown characters
-            //depending upon the number of characters which are deemed errors ,separate functions handle the
-            //process for code cleanliness and simplicity.
-            //if one error is found we have 2 possibilities 1st that the replaced character is "." and
-            //second that it is a "-",hence we need to show both,
-            //this case becomes a bit complicated with the
-            // next two cases as we have to check for previous errors that maybe present
-            // also and form different combinations based on this premise
-            //Also since the length of no morse code appeared >4 for the given problem ,
-            // we assume that if all the 4 characters are "?",the input is invalid
-            //
-            if (inputHasError) {
-                when (errorIndices.size) {
-                    1 -> {
-                        possibleValues = calculationForSingleError(input, errorIndices[0])
+                //if inputHasError is true ->Error state has occurred & we have an unknown characters
+                //depending upon the number of characters which are deemed errors ,separate functions handle the
+                //process for code cleanliness and simplicity.
+                //if one error is found we have 2 possibilities 1st that the replaced character is "." and
+                //second that it is a "-",hence we need to show both,
+                //this case becomes a bit complicated with the
+                // next two cases as we have to check for previous errors that maybe present
+                // also and form different combinations based on this premise
+                //Also since the length of no morse code appeared >4 for the given problem ,
+                // we assume that if all the 4 characters are "?",the input is invalid
+                //
+                if (inputHasError) {
+                    when (errorIndices.size) {
+                        1 -> {
+                            possibleValues = calculationForSingleError(input, errorIndices[0])
+                        }
+                        2 -> {
+                            possibleValues = calculationsForInputWithTwoErrors(input, errorIndices[0], errorIndices[1])
+                        }
+                        3 -> {
+                            possibleValues = calculationsForInputWithThreeErrors(
+                                input,
+                                errorIndices[0],
+                                errorIndices[1],
+                                errorIndices[2]
+                            )
+                        }
+                        else -> {
+                            println("Invalid input")
+                        }
                     }
-                    2 -> {
-                        possibleValues = calculationsForInputWithTwoErrors(input, errorIndices[0], errorIndices[1])
-                    }
-                    3 -> {
-                        possibleValues = calculationsForInputWithThreeErrors(
-                            input,
-                            errorIndices[0],
-                            errorIndices[1],
-                            errorIndices[2]
-                        )
-                    }
-                    else -> {
-                        println("Invalid input")
-                    }
+                } else {
+                    //No errors in the provided input we can go ahead and perform the conversion
+                    println("Decoded character = ${getHumanReadableString(input)}")
+                }
+                if (possibleValues.isEmpty().not()) {
+                    println("Errors were found in the code returning all possible combinations \n ${possibleValues.filter { it.isNotBlank() }}")
                 }
             } else {
-                //No errors in the provided input we can go ahead and perform the conversion
-                println("Morse code  = ${getMorseCode(input)}")
+                ///String has no valid inputs e.g ??? or ????
+                ///This will now try and match based on length of the code entered
+                getHumanReadableString(input)
             }
-            if (possibleValues.isEmpty().not()) {
-                println("Errors were found in the code returning all possible combinations \n ${possibleValues.filter { it.isNotBlank() }}")
-            }
+        }else {
+            println("This algorithm handles morse code for inputs with up-to 4 characters")
         }
     }
 
@@ -71,7 +78,7 @@ class MorseCodeDecoder {
      * This function resolves morse code with two errors example "_?"
      * the function will provide all possible combinations for the above string in a hashset
      * Error indices are required to form different combinations
-     * [index] ->Index of the error
+     * [index] -> Index of the error
      * **/
     private fun calculationForSingleError(input: String, index: Int): HashSet<String> {
         val possibleValues = hashSetOf<String>()
@@ -158,47 +165,63 @@ class MorseCodeDecoder {
         possibleValues: HashSet<String>
     ) {
         charArray[idx] = '.'
-        possibleValues.add(getMorseCode(charArray.toMutableList().joinToString("")))
+        possibleValues.add(getHumanReadableString(charArray.toMutableList().joinToString("")))
         charArray[idx] = '-'
-        possibleValues.add(getMorseCode(charArray.toMutableList().joinToString("")))
+        possibleValues.add(getHumanReadableString(charArray.toMutableList().joinToString("")))
     }
 
 
     /**
      * This function performs the conversion from  morse code to string
      * [input] :- is the morse code
-     * **/
-    private fun getMorseCode(input: String): String {
-        when (input) {
-            ".-" -> return "a"
-            "-..." -> return "b"
-            "-.-." -> return "c"
-            "-.." -> return "d"
-            "." -> return "e"
-            "..-." -> return "f"
-            "--." -> return "g"
-            "...." -> return "h"
-            ".." -> return "i"
-            ".---" -> return "j"
-            "-.-" -> return "k"
-            ".-.." -> return "l"
-            "--" -> return "m"
-            "-." -> return "n"
-            "---" -> return "o"
-            ".--." -> return "p"
-            "--.-" -> return "q"
-            ".-." -> return "r"
-            "..." -> return "s"
-            "-" -> return "t"
-            "..-" -> return "u"
-            "...-" -> return "v"
-            ".--" -> return "w"
-            "-..-" -> return "x"
-            "-.--" -> return "y"
-            "--.." -> return "z"
-            else -> return ""
+     * */
+    private fun getHumanReadableString(input: String): String {
+        val hashMap  =  hashMapOf<String,String>()
+        hashMap.also { 
+            it["ab"] = "a"
+            it[".-"] =  "a"
+            it["-..."] =  "b"
+            it["-.-."]  = "c"
+            it["-.."] =  "d"
+            it["."] = "e"
+            it["..-."] = "f"
+            it["--."] =  "g"
+            it["...."] = "h"
+            it[".." ]="i"
+            it[".---"] =  "j"
+            it["-.-"] = "k"
+            it[".-.."] = "l"
+            it["--"] = "m"
+            it["-."] = "n"
+            it["---"] = "o"
+            it[".--."] = "p"
+            it["--.-"] = "q"
+            it[".-."] ="r"
+            it["..."] = "s"
+            it["-"] = "t"
+            it["..-"] =  "u"
+            it["...-"] = "v"
+            it[".--" ] ="w"
+            it["-..-"]= "x"
+            it["-.--"] = "y"
+            it["--.."] = "z"
         }
-
+        if(hashMap.containsKey(input))
+        {
+            return hashMap[input]!!
+        }else {
+            ///Checking if all characters have been changed to something other than . and -
+            if(input.contains(".").not()&&input.contains("-").not()) {
+                val valuesWithSameLength = arrayListOf<String>()
+                println("Encountered invalid input returning value based on string length for string $input")
+                val approxValues = hashMap.keys.filter { it.length == input.length }
+                approxValues.forEach {
+                    valuesWithSameLength.add(hashMap[it]!!)
+                }
+                println(valuesWithSameLength)
+            }
+        }
+        return ""
     }
 
 }
